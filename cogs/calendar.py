@@ -107,7 +107,7 @@ class CalendarCog(commands.Cog):
         try:
             while len(self.reacted) != len(self.students):
                 timeout = event.end.shift(minutes=+15) - now(config.TIMEZONE)
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout.seconds, check=check)
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=abs(timeout.seconds), check=check)
                 task = self.bot.loop.create_task(self.check_in(user, courses, event, bot_message))
 
         except asyncio.TimeoutError:
