@@ -25,10 +25,16 @@ async def on_ready():
     calCog.start_loops()
 
 
-@bot.command(name="test")
+@bot.command(name="debug")
 @commands.check(is_admin)
-async def _test(ctx: commands.Context, *args):
-    event = list(calCog.calendar.timeline.now())[0]
+async def _debug(ctx: commands.Context, mode: str = "now", *args):
+    if mode in ("now", "n"):
+        event = list(calCog.calendar.timeline.now())[0]
+    elif mode in ("today", "t"):
+        event = list(calCog.calendar.timeline.today())[0]
+    else:
+        event = list(calCog.calendar.timeline.today())[0]
+
     embed = tools.generate_event_embed(event, (0, len(students)))
     bot_message: discord.Message = await ctx.send(embed=embed)
     await bot_message.add_reaction(config.REACTION_EMOJI)
