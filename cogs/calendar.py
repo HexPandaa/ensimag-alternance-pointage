@@ -60,10 +60,6 @@ class CalendarCog(commands.Cog):
             # There is a new event
             self.logger.info("New event found")
             await self.send_event(event)
-            self.last_event = event.uid
-            async with self.data_lock:
-                with open(config.DATA_FILE, "w") as fd:
-                    json.dump(self.gen_data(), fd)
 
     @commands.command()
     async def update(self, ctx: commands.Context) -> None:
@@ -95,6 +91,12 @@ class CalendarCog(commands.Cog):
         courses = tools.get_courses()
         self.logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
 
+        # Update the last event
+        self.last_event = event.uid
+        async with self.data_lock:
+            with open(config.DATA_FILE, "w") as fd:
+                json.dump(self.gen_data(), fd)
+        
         def check(_reaction: discord.Reaction, _user: discord.User):
             return _reaction.message == bot_message and \
                    str(_user.id) in self.students and \
