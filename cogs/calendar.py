@@ -12,6 +12,7 @@ from ics import Calendar, Event
 import json
 import typing
 import logging
+from arrow import now
 
 
 class CalendarCog(commands.Cog):
@@ -105,7 +106,8 @@ class CalendarCog(commands.Cog):
 
         try:
             while len(self.reacted) != len(self.students):
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=config.REACTION_TIMEOUT, check=check)
+                timeout = event.end.shift(minutes=+15) - now(config.TIMEZONE)
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout, check=check)
                 task = self.bot.loop.create_task(self.check_in(user, courses, event, bot_message))
 
         except asyncio.TimeoutError:
