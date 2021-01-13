@@ -35,7 +35,8 @@ CALENDAR_FILE = "./calendar.ics"
 DATA_FILE = "./data.json"
 
 # Embed
-EMBED_DESCRIPTION = "N'oubliez pas de pointer [ici](http://domain.tld/path) !\n" \
+EMBED_EVENT_DESCRIPTION = "N'oubliez pas de pointer [ici](http://domain.tld/path) !\n" \
                     "Ou réagissez avec l'émoji 📌"
+EMBED_EVENT_FINISHED_DESCRIPTION = ":x: Le cours est terminé, il n'est plus possible de pointer"
 EMBED_COLOR = 0x0079d6
 EMBED_THUMBNAIL = "https://domain.tld/image.png"

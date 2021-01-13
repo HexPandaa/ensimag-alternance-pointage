@@ -109,9 +109,11 @@ class CalendarCog(commands.Cog):
                 timeout = event.end.shift(minutes=+15) - now(config.TIMEZONE)
                 timeout = timeout if timeout > 1 else 1
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout.seconds, check=check)
-                task = self.bot.loop.create_task(self.check_in(user, courses, event, bot_message))
+                self.bot.loop.create_task(self.check_in(user, courses, event, bot_message))
 
         except asyncio.TimeoutError:
+            embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)), finished=True)
+            await bot_message.edit(embed=embed)
             await bot_message.add_reaction(config.CANCELLED_EMOJI)
         else:
             pass

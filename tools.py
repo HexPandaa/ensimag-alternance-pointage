@@ -23,15 +23,19 @@ def get_student(_id: int, students: dict) -> typing.Union[list, None]:
     return students.get(str(_id), None)
 
 
-def generate_event_embed(event: Event, check_in_number: typing.Tuple[int, int]) -> discord.Embed:
+def generate_event_embed(event: Event,
+                         check_in_number: typing.Tuple[int, int],
+                         finished: bool = False) -> discord.Embed:
     """
 
     :param event:
     :param check_in_number:
+    :param finished:
     :return:
     """
+    description = config.EMBED_EVENT_DESCRIPTION if not finished else config.EMBED_EVENT_FINISHED_DESCRIPTION
     embed = discord.Embed(title=event.name,
-                          description=config.EMBED_DESCRIPTION,
+                          description=description,
                           color=config.EMBED_COLOR)
     embed.set_thumbnail(url=config.EMBED_THUMBNAIL)
     embed.add_field(name="Heure", value=f"De {event.begin.to(config.TIMEZONE).strftime('%Hh%M')}"

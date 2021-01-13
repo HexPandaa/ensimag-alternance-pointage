@@ -27,7 +27,7 @@ async def on_ready():
 
 @bot.command(name="debug")
 @commands.check(is_admin)
-async def _debug(ctx: commands.Context, mode: str = "now", *args):
+async def _debug(ctx: commands.Context, mode: str = "now"):
     if mode in ("now", "n"):
         event = list(calCog.calendar.timeline.now())[0]
     elif mode in ("today", "t"):
@@ -52,9 +52,11 @@ async def _debug(ctx: commands.Context, mode: str = "now", *args):
     try:
         while len(calCog.reacted) != len(students):
             reaction, user = await bot.wait_for('reaction_add', timeout=config.REACTION_TIMEOUT, check=check)
-            task = bot.loop.create_task(calCog.check_in(user, courses, event, bot_message))
+            bot.loop.create_task(calCog.check_in(user, courses, event, bot_message))
     except asyncio.TimeoutError:
         logger.info("Cancelled")
+        embed = tools.generate_event_embed(event, (len(calCog.reacted), len(students)), finished=True)
+        await bot_message.edit(embed=embed)
         await bot_message.add_reaction(config.CANCELLED_EMOJI)
     else:
         pass
@@ -66,4 +68,3 @@ if __name__ == '__main__':
     calCog = CalendarCog(bot, students, logger=logger)
     bot.add_cog(calCog)
     bot.run(config.BOT_TOKEN)
-
