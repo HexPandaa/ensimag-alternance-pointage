@@ -80,6 +80,12 @@ class CalendarCog(commands.Cog):
         :param event:
         :return:
         """
+        # Update the last event
+        self.last_event = event.uid
+        async with self.data_lock:
+            with open(config.DATA_FILE, "w") as fd:
+                json.dump(self.gen_data(), fd)
+
         channel = self.bot.get_channel(config.CHANNEL_ID)
         self.logger.debug(f"Got channel: {channel.name}")
         embed = tools.generate_event_embed(event, (0, len(self.students)))
@@ -90,12 +96,6 @@ class CalendarCog(commands.Cog):
         self.reacted = set()  # The users who reacted
         courses = tools.get_courses()
         self.logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
-
-        # Update the last event
-        self.last_event = event.uid
-        async with self.data_lock:
-            with open(config.DATA_FILE, "w") as fd:
-                json.dump(self.gen_data(), fd)
 
         def check(_reaction: discord.Reaction, _user: discord.User):
             return _reaction.message == bot_message and \
