@@ -143,11 +143,17 @@ class CalendarCog(commands.Cog):
 
     async def send_check_in_status(self, status: bool, course: dict, user: discord.User) -> bool:
         if status:
-            await user.send(f":white_check_mark: Pointage pour le cours de {course['name']} réussi !")
             self.logger.debug(f"Successfully checked-in {user.display_name} for course {course['name']}")
+            try:
+                await user.send(f":white_check_mark: Pointage pour le cours de {course['name']} réussi !")
+            except discord.errors.Forbidden:  # User's DMs are closed
+                self.logger.debug(f"Couldn't send status DM to {user.display_name}")
         else:
-            await user.send(f":x: Erreur lors du pointage pour le cours de {course['name']}.")
             self.logger.error(f"Error checking-in {user.display_name} for course {course['name']}")
+            try:
+                await user.send(f":x: Erreur lors du pointage pour le cours de {course['name']}.")
+            except discord.errors.Forbidden:  # User's DMs are closed
+                self.logger.debug(f"Couldn't send status DM to {user.display_name}")
         return status
 
     async def get_last_event(self) -> typing.Union[Event, None]:
