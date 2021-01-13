@@ -97,6 +97,8 @@ class CalendarCog(commands.Cog):
         self.reacted = set()  # The users who reacted
         courses = tools.get_courses()
         self.logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
+        courses = tools.filter_current_courses(event, courses)
+        self.logger.debug(f"Filtered courses, remaining course(s): {', '.join([course['name'] for course in courses])}")
 
         def check(_reaction: discord.Reaction, _user: discord.User):
             return _reaction.message == bot_message and \

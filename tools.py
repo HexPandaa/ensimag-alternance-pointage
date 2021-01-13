@@ -62,6 +62,16 @@ def get_courses() -> list:
     return list()
 
 
+def filter_current_courses(event: Event, courses: list) -> list:
+    current_courses = list()
+    for course in courses:
+        evt_start = event.begin.to("Europe/Paris").strftime("%H:%M")
+        evt_end = event.end.to("Europe/Paris").strftime("%H:%M")
+        if course["start"] == evt_start and course["end"] == evt_end:
+            current_courses.append(course)
+    return current_courses
+
+
 def check_in(username: str, course_id: int, logger: Logger) -> bool:
     payload = {
         "courseID": str(course_id),
