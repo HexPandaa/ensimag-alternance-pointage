@@ -81,7 +81,7 @@ class CalendarCog(commands.Cog):
         :return:
         """
         channel = self.bot.get_channel(config.CHANNEL_ID)
-        self.logger.debug("Got channel:", channel)
+        self.logger.debug(f"Got channel: {channel.name}")
         embed = tools.generate_event_embed(event, (0, len(self.students)))
         bot_message: discord.Message = await channel.send(embed=embed)
 
@@ -96,11 +96,12 @@ class CalendarCog(commands.Cog):
         async with self.data_lock:
             with open(config.DATA_FILE, "w") as fd:
                 json.dump(self.gen_data(), fd)
-        
+
         def check(_reaction: discord.Reaction, _user: discord.User):
             return _reaction.message == bot_message and \
                    str(_user.id) in self.students and \
-                   str(_reaction.emoji) == config.REACTION_EMOJI
+                   str(_reaction.emoji) == config.REACTION_EMOJI and \
+                   _user not in self.reacted
 
         try:
             while len(self.reacted) != len(self.students):

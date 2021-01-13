@@ -40,7 +40,8 @@ async def _test(ctx: commands.Context, *args):
     def check(_reaction: discord.Reaction, _user: discord.User):
         return _reaction.message == bot_message and \
                str(_user.id) in students and \
-               str(_reaction.emoji) == config.REACTION_EMOJI
+               str(_reaction.emoji) == config.REACTION_EMOJI and \
+               _user not in calCog.reacted
 
     try:
         while len(calCog.reacted) != len(students):
