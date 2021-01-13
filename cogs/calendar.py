@@ -85,7 +85,7 @@ class CalendarCog(commands.Cog):
         :return:
         """
         channel = self.bot.get_channel(config.CHANNEL_ID)
-        print("Got channel", channel)
+        self.logger.debug("Got channel:", channel)
         embed = tools.generate_event_embed(event, (0, len(self.students)))
         bot_message: discord.Message = await channel.send(embed=embed)
 
