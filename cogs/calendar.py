@@ -97,6 +97,7 @@ class CalendarCog(commands.Cog):
         self.reacted = set()  # The users who reacted
         courses = tools.get_courses()
         self.logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
+        # Only check-in for the current courses (hopefully there's only one)
         courses = tools.filter_current_courses(event, courses)
         self.logger.debug(f"Filtered courses, remaining course(s): {', '.join([course['name'] for course in courses])}")
 
@@ -149,13 +150,14 @@ class CalendarCog(commands.Cog):
         if status:
             self.logger.debug(f"Successfully checked-in {user.display_name} for course {course['name']}")
             try:
-                await user.send(f":white_check_mark: Pointage pour le cours de {course['name']} réussi !")
+                await user.send(f":white_check_mark: Pointage pour le cours de {course['name']} "
+                                f"de {course['start']} à {course['end']} réussi !")
             except discord.errors.Forbidden:  # User's DMs are closed
                 self.logger.debug(f"Couldn't send status DM to {user.display_name}")
         else:
             self.logger.error(f"Error checking-in {user.display_name} for course {course['name']}")
             try:
-                await user.send(f":x: Erreur lors du pointage pour le cours de {course['name']}.")
+                await user.send(f":x: Erreur lors du pointage pour le cours de {course['name']} de {course['start']} à {course['end']}.")
             except discord.errors.Forbidden:  # User's DMs are closed
                 self.logger.debug(f"Couldn't send status DM to {user.display_name}")
         return status
