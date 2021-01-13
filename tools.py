@@ -8,6 +8,20 @@ from ics import Event
 import requests
 from logging import Logger
 import typing
+import argparse
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="""
+    A Discord bot allowing students to check-in to their classes directly from Discord
+    """)
+    parser.add_argument("--log-level",
+                        default="INFO",
+                        type=str,
+                        choices=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
+                        help="the logging verbosity level")
+    args = parser.parse_args()
+    return args
 
 
 def load_students(file: str) -> dict:

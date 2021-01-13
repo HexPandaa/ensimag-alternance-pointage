@@ -10,7 +10,7 @@ from cogs.calendar import CalendarCog
 import discord
 from discord.ext import commands
 import asyncio
-
+import argparse
 
 bot = commands.Bot(command_prefix="!")
 
@@ -63,7 +63,8 @@ async def _debug(ctx: commands.Context, mode: str = "now"):
 
 
 if __name__ == '__main__':
-    logger = tools.get_logger(name="bot", level="DEBUG")
+    args = tools.parse_args()
+    logger = tools.get_logger(name="bot", level=args.log_level)
     students = tools.load_students(config.STUDENTS_FILE)
     calCog = CalendarCog(bot, students, logger=logger)
     bot.add_cog(calCog)
