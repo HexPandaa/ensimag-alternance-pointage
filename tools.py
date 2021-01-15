@@ -48,13 +48,15 @@ def generate_event_embed(event: Event,
     :return:
     """
     description = config.EMBED_EVENT_DESCRIPTION if not finished else config.EMBED_EVENT_FINISHED_DESCRIPTION
-    embed = discord.Embed(title=event.name,
+    name = event.name if event.name else "Unknow course"
+    location = event.location if event.location else "Unknown location"
+    embed = discord.Embed(title=name,
                           description=description,
                           color=config.EMBED_COLOR)
     embed.set_thumbnail(url=config.EMBED_THUMBNAIL)
     embed.add_field(name="Heure", value=f"De {event.begin.to(config.TIMEZONE).strftime('%Hh%M')}"
                                         f" à {event.end.to(config.TIMEZONE).strftime('%Hh%M')}", inline=True)
-    embed.add_field(name="Salle", value=event.location, inline=True)
+    embed.add_field(name="Salle", value=location, inline=True)
     embed.add_field(name="Pointage", value=f"{check_in_number[0]}/{check_in_number[1]}", inline=True)
     embed.set_footer(text="Ensi-pointing par Rom", icon_url="https://camo.githubusercontent.com/"
                                                             "8bcee5987a3ce80d2d466bb1cbe5b5c18b6450f84036d98ef37"
