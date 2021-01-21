@@ -87,10 +87,19 @@ class CalendarCog(commands.Cog):
             with open(config.DATA_FILE, "w") as fd:
                 json.dump(self.gen_data(), fd)
 
-        channel = self.bot.get_channel(config.CHANNEL_ID)
+        # Getting the channel to send the event to
+        channel: discord.TextChannel = self.bot.get_channel(config.CHANNEL_ID)
         self.logger.debug(f"Got channel: {channel.name}")
+
+        # Getting the role to mention if enabled in the config
+        role: typing.Union[discord.Role, None] = None
+        if config.ROLE_MENTION_ENABLE:
+            role = channel.guild.get_role(config.ROLE_MENTION)
+
+        # Generating the base embed
         embed = tools.generate_event_embed(event, (0, len(self.students)))
-        bot_message: discord.Message = await channel.send(embed=embed)
+        content = role.mention if role else ""
+        bot_message: discord.Message = await channel.send(content=content, embed=embed)
 
         await bot_message.add_reaction(config.REACTION_EMOJI)
 
@@ -126,13 +135,15 @@ class CalendarCog(commands.Cog):
                        user: discord.User,
                        courses: typing.List[dict],
                        event: Event,
-                       bot_message: discord.Message):
+                       bot_message: discord.Message,
+                       bot_message_content: str = ""):
         """
 
         :param user:
         :param courses:
         :param event:
         :param bot_message:
+        :param bot_message_content:
         :return:
         """
         student = tools.get_student(user.id, self.students)
@@ -145,7 +156,7 @@ class CalendarCog(commands.Cog):
             await self.send_check_in_status(status, course, user)
             await asyncio.sleep(1)
         _embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)))
-        await bot_message.edit(embed=_embed)
+        await bot_message.edit(content=bot_message_content, embed=_embed)
 
     async def send_check_in_status(self, status: bool, course: dict, user: discord.User) -> bool:
         if status:

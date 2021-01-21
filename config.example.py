@@ -35,6 +35,8 @@ CALENDAR_FILE = "./calendar.ics"
 DATA_FILE = "./data.json"
 
 # Embed
+ROLE_MENTION = 000000000000000000
+ROLE_MENTION_ENABLE = True
 EMBED_EVENT_DESCRIPTION = "N'oubliez pas de pointer [ici](http://domain.tld/path) !\n" \
                     "Ou réagissez avec l'émoji 📌"
 EMBED_EVENT_FINISHED_DESCRIPTION = ":x: Le cours est terminé, il n'est plus possible de pointer"
