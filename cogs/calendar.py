@@ -126,7 +126,7 @@ class CalendarCog(commands.Cog):
 
         except asyncio.TimeoutError:
             embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)), finished=True)
-            await bot_message.edit(embed=embed)
+            await bot_message.edit(content=content, embed=embed)
             await bot_message.add_reaction(config.CANCELLED_EMOJI)
         else:
             pass
