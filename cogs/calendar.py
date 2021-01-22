@@ -122,7 +122,7 @@ class CalendarCog(commands.Cog):
                 timeout = timeout.seconds
                 timeout = timeout if timeout > 1 else 1
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout, check=check)
-                self.bot.loop.create_task(self.check_in(user, courses, event, bot_message))
+                self.bot.loop.create_task(self.check_in(user, courses, event, bot_message, content))
 
         except asyncio.TimeoutError:
             embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)), finished=True)
