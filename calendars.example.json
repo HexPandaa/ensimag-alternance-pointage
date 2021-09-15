@@ -1,0 +1,16 @@
+{
+  "calendars": [
+    {
+      "id": "202x-202x-your_class",
+      "url": "https://domain.tld/calendar.ics",
+
+      "channel_id": 100000000000000000,
+      "role_id": 200000000000000000,
+      "role_mention": true,
+      "embed" : {
+        "color": "Oxeeb948",
+        "thumbnail": "https://domain.tld/image.png"
+      }
+    }
+  ]
+}

@@ -6,13 +6,11 @@ BOT_ADMINS = (
 )
 
 # Events
-CHANNEL_ID = 000000000000000000
 REACTION_EMOJI = "📌"
 CANCELLED_EMOJI = "❌"
 REACTION_TIMEOUT = 30 * 60  # 30 minutes
 
 # Calendar
-CALENDAR_URL = "https://domain.tld/calendar.ics"
 CALENDAR_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                   "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -30,15 +28,11 @@ API_COURSES_ENDPOINT = API_BASE_URL + "courses"
 API_CHECK_IN_ENDPOINT = API_BASE_URL + "check-in"
 
 # Files
+CALENDARS_FOLDER = "./calendars/"
 STUDENTS_FILE = "./students.json"
-CALENDAR_FILE = "./calendar.ics"
-DATA_FILE = "./data.json"
+CALENDARS_CONFIG_FILE = "./calendars.json"
 
 # Embed
-ROLE_MENTION = 000000000000000000
-ROLE_MENTION_ENABLE = True
 EMBED_EVENT_DESCRIPTION = "N'oubliez pas de pointer [ici](http://domain.tld/path) !\n" \
                     "Ou réagissez avec l'émoji 📌"
 EMBED_EVENT_FINISHED_DESCRIPTION = ":x: Le cours est terminé, il n'est plus possible de pointer"
-EMBED_COLOR = 0x0079d6
-EMBED_THUMBNAIL = "https://domain.tld/image.png"
