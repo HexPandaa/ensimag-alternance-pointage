@@ -14,13 +14,16 @@ import typing
 import logging
 from arrow import now
 
+from typing import List, Dict
+
 
 class CalendarCog(commands.Cog):
-    def __init__(self, bot: commands.Bot, students: dict, logger: logging.Logger = logging.getLogger("Calendar")):
+    def __init__(self, bot: commands.Bot, students: dict, calendars: List[Dict], logger: logging.Logger = logging.getLogger("Calendar")):
         """
 
         :param bot: The bot
         :param students: The dictionary mapping the students' discord IDs to their identities
+        :param calendars: The list of the configuration of all calendars
         :param logger: An optional logger
         """
         self.bot = bot
@@ -33,22 +36,22 @@ class CalendarCog(commands.Cog):
         self.calendar = Calendar()
 
         self.logger = logger
-        self.last_status = False
+        self.last_statuses: dict[str, bool] = {cal["id"]: False for cal in calendars}
 
         self.last_event = None
         self.load_data()
 
     def start_loops(self):
-        self.update_calendar.start()
+        self.update_calendars.start()
         self.check_event.start()
 
     @tasks.loop(seconds=config.CALENDAR_UPDATE_INTERVAL)
-    async def update_calendar(self) -> None:
+    async def update_calendars(self) -> None:
         """
-        The loop that triggers the calendar updates
+        The loop that triggers the calendars updates
         :return: None
         """
-        self.last_status = await self._update_calendar()
+        self.last_statuses = await self._update_calendars()
 
     @tasks.loop(seconds=config.EVENT_CHECK_INTERVAL)
     async def check_event(self) -> None:
@@ -220,24 +223,32 @@ class CalendarCog(commands.Cog):
         except IOError:
             self.calendar = Calendar()
 
-    async def _update_calendar(self) -> bool:
+    async def _update_calendars(self) -> dict[str, bool]:
         """
-
+        Update all the calendars and return whether or not they were successfully updated
         :return:
         """
-        try:
-            r = requests.get(config.CALENDAR_URL, headers=config.CALENDAR_HEADERS)
-            r.raise_for_status()
-            async with self.calendar_lock:
-                with open(config.CALENDAR_FILE, "w", encoding="utf-8") as f:
-                    f.write(r.text)
-                self.calendar = Calendar(r.text)
-            if self.logger:
-                self.logger.info("Calendar updated")
-            return True
+        statuses = dict()
 
-        except requests.HTTPError as e:
-            print(e)
-            if self.logger:
-                self.logger.error(f"ERROR: Could not update the calendar")
-            return False
+        for cal in self.calendars_data:
+            cal_id  = cal["id"]
+            cal_url = cal["url"]
+            cal_filename = tools.get_calendar_filename(cal_id)
+            try:
+                r = requests.get(cal_url, headers=config.CALENDAR_HEADERS)
+                r.raise_for_status()
+                async with self.calendar_lock:
+                    with open(cal_filename, "w", encoding="utf-8") as f:
+                        f.write(r.text)
+                    self.calendars[cal_id] = Calendar(r.text)
+                if self.logger:
+                    self.logger.info(f"Calendar {cal_id} updated")
+                statuses[cal_id] = True
+
+            except requests.HTTPError as e:
+                print(e)
+                if self.logger:
+                    self.logger.error(f"ERROR: Could not update the calendar {cal_id}")
+                statuses[cal_id] = False
+
+        return statuses
