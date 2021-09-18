@@ -267,10 +267,13 @@ class CalendarCog(commands.Cog):
         statuses = dict()
 
         for cal_id in self.calendars_data:
+            if self.logger:
+                self.logger.debug(f"Updating calendar {cal_id}...")
             cal_url = self.calendars_data[cal_id]["url"]
             cal_filename = tools.get_calendar_filename(cal_id)
             try:
                 r = requests.get(cal_url, headers=config.CALENDAR_HEADERS)
+                self.logger.debug(f"Got response code {r.status_code}")
                 r.raise_for_status()
                 async with self.calendar_lock:
                     with open(cal_filename, "w", encoding="utf-8") as f:
