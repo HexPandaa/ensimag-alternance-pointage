@@ -105,16 +105,17 @@ class CalendarCog(commands.Cog):
         cal_data = self.calendars_data[calendar_id]
 
         # Getting the channel to send the event to
-        channel: discord.TextChannel = self.bot.get_channel(config.CHANNEL_ID)
-        self.logger.debug(f"Got channel: {channel.name}")
+        cal_channel = cal_data["channel_id"]
+        channel: discord.TextChannel = self.bot.get_channel(cal_channel)
+        self.logger.debug(f"Got channel '{channel.name}' for calendar {calendar_id}")
 
         # Getting the role to mention if enabled in the config
         role: typing.Union[discord.Role, None] = None
-        if config.ROLE_MENTION_ENABLE:
-            role = channel.guild.get_role(config.ROLE_MENTION)
+        if cal_data["role_mention"]:
+            role = channel.guild.get_role(cal_data["role_id"])
 
         # Generating the base embed
-        embed = tools.generate_event_embed(event, (0, len(self.students)))
+        embed = tools.generate_event_embed(event, (0, len(self.students)),  cal_data)
         content = role.mention if role else ""
         bot_message: discord.Message = await channel.send(content=content, embed=embed)
 
@@ -132,7 +133,7 @@ class CalendarCog(commands.Cog):
             return _reaction.message == bot_message and \
                    str(_user.id) in self.students and \
                    str(_reaction.emoji) == config.REACTION_EMOJI and \
-                   _user not in self.reacted
+                   _user not in self.reacted[calendar_id]
 
         try:
             while len(self.reacted[calendar_id]) != len(self.students):
@@ -144,7 +145,7 @@ class CalendarCog(commands.Cog):
                     self.bot.loop.create_task(self.check_in(user, courses, event, calendar_id, bot_message, content))
 
         except asyncio.TimeoutError:
-            embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)), finished=True)
+            embed = tools.generate_event_embed(event, (len(self.reacted[calendar_id]), len(self.students), cal_data), finished=True)
             await bot_message.edit(content=content, embed=embed)
             await bot_message.add_reaction(config.CANCELLED_EMOJI)
         else:
@@ -154,6 +155,7 @@ class CalendarCog(commands.Cog):
                        user: discord.User,
                        courses: typing.List[dict],
                        event: Event,
+                       calendar_id: str,
                        bot_message: discord.Message,
                        bot_message_content: str = ""):
         """
@@ -161,6 +163,7 @@ class CalendarCog(commands.Cog):
         :param user:
         :param courses:
         :param event:
+        :param calendar_id: The id of the calendar
         :param bot_message:
         :param bot_message_content:
         :return:
@@ -174,7 +177,7 @@ class CalendarCog(commands.Cog):
                 self.reacted[calendar_id].add(user)
             await self.send_check_in_status(status, course, user)
             await asyncio.sleep(1)
-        _embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)))
+        _embed = tools.generate_event_embed(event, (len(self.reacted[calendar_id]), len(self.students)))
         await bot_message.edit(content=bot_message_content, embed=_embed)
 
     async def send_check_in_status(self, status: bool, course: dict, user: discord.User) -> bool:
