@@ -68,15 +68,17 @@ class CalendarCog(commands.Cog):
     @commands.command()
     async def update(self, ctx: commands.Context) -> None:
         """
-        The user command to update the calendar
+        The user command to update the calendars
         :param ctx: The context
         :return: None
         """
-        self.last_status = self._update_calendar()
-        if self.last_status:
-            await ctx.send(":white_check_mark: Successfully updated.")
-        else:
-            await ctx.send(":x: Successfully updated.")
+        self.last_statuses = await self._update_calendars()
+        message = ":bell: **Update status:**\n"
+        for _id, status in self.last_statuses.items():
+            message += ":white_check_mark: " if status else ":x: "
+            message += _id
+            message += "\n"
+        await ctx.send(message)
 
     async def send_event(self, event: Event):
         """
