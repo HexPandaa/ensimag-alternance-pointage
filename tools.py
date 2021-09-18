@@ -61,21 +61,23 @@ def get_calendar_data_filename(calendar_id: str) -> str:
 
 def generate_event_embed(event: Event,
                          check_in_number: typing.Tuple[int, int],
+                         calendar_data: dict,
                          finished: bool = False) -> discord.Embed:
     """
 
-    :param event:
-    :param check_in_number:
-    :param finished:
-    :return:
+    :param event: The event to generate the embed for
+    :param check_in_number: A tuple with two elements, the number of check-ins, and the total number of users of the calendar
+    :param calendar_data: The data for the calendar
+    :param finished: Whether or not the event is finished
+    :return: The generated Embed object
     """
     description = config.EMBED_EVENT_DESCRIPTION if not finished else config.EMBED_EVENT_FINISHED_DESCRIPTION
     name = event.name if event.name else "Unknow course"
     location = event.location if event.location else "Unknown location"
     embed = discord.Embed(title=name,
                           description=description,
-                          color=config.EMBED_COLOR)
-    embed.set_thumbnail(url=config.EMBED_THUMBNAIL)
+                          color=calendar_data["embed"]["color"])
+    embed.set_thumbnail(url=calendar_data["embed"]["thumbnail"])
     embed.add_field(name="Heure", value=f"De {event.begin.to(config.TIMEZONE).strftime('%Hh%M')}"
                                         f" à {event.end.to(config.TIMEZONE).strftime('%Hh%M')}", inline=True)
     embed.add_field(name="Salle", value=location, inline=True)

@@ -33,8 +33,8 @@ class CalendarCog(commands.Cog):
 
         self.students = students
 
-        self.calendars_data = calendars
-        # self.calendars_data = {cal["id"]: cal for cal in calendars}
+        # self.calendars_data = calendars
+        self.calendars_data = {cal["id"]: cal for cal in calendars}
         # Dict of empty calendars for now, mapped by their id in the config file
         self.calendars: dict[str, Calendar] = {cal["id"]: Calendar() for cal in calendars}
 
@@ -209,8 +209,7 @@ class CalendarCog(commands.Cog):
         Loads the last events for all calendars from their data files, if they don't exist, set en empty string as the event
         :return:
         """
-        for cal in self.calendars_data:
-            cal_id = cal["id"]
+        for cal_id in self.calendars_data:
             cal_data_file = tools.get_calendar_data_filename(cal_id)
             try:
                 with open(cal_data_file) as fd:
@@ -224,8 +223,7 @@ class CalendarCog(commands.Cog):
         Loads all the calendars from their files, if they are not available, load an empty calendar
         :return:
         """
-        for cal in self.calendars_data:
-            cal_id = cal["id"]
+        for cal_id in self.calendars_data:
             cal_file = tools.get_calendar_filename(cal_id)
             try:
                 with self.calendar_lock:
@@ -241,9 +239,8 @@ class CalendarCog(commands.Cog):
         """
         statuses = dict()
 
-        for cal in self.calendars_data:
-            cal_id  = cal["id"]
-            cal_url = cal["url"]
+        for cal_id in self.calendars_data:
+            cal_url = self.calendars_data[cal_id]["url"]
             cal_filename = tools.get_calendar_filename(cal_id)
             try:
                 r = requests.get(cal_url, headers=config.CALENDAR_HEADERS)
