@@ -20,6 +20,10 @@ def parse_args() -> argparse.Namespace:
                         type=str,
                         choices=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
                         help="the logging verbosity level")
+    parser.add_argument("--enable-check-in",
+                        action="store_true",
+                        nargs="?",
+                        help="to enable check-ins")
     args = parser.parse_args()
     return args
 
