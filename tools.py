@@ -9,6 +9,7 @@ import requests
 from logging import Logger
 import typing
 import argparse
+from os.path import join
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,8 +38,25 @@ def load_students(file: str) -> dict:
         return dict()
 
 
+def load_calendars_config(file: str) -> dict:
+    try:
+        with open(file, "r", encoding="utf-8") as fd:
+            s = json.load(fd)
+        return s
+    except (IOError, json.JSONDecodeError):
+        return dict()
+
+
 def get_student(_id: int, students: dict) -> typing.Union[list, None]:
     return students.get(str(_id), None)
+
+
+def get_calendar_filename(calendar_id: str) -> str:
+    return join(config.CALENDARS_FOLDER, calendar_id + ".ics")
+
+
+def get_calendar_data_filename(calendar_id: str) -> str:
+    return join(config.CALENDARS_FOLDER, calendar_id + ".data.json")
 
 
 def generate_event_embed(event: Event,
