@@ -1,3 +1,5 @@
 discord.py
 ics
 arrow
+requests
+colorlog
