@@ -41,12 +41,13 @@ class CalendarCog(commands.Cog):
         self.logger = logger
         self.last_statuses: dict[str, bool] = {cal["id"]: False for cal in calendars}
 
-        self.last_event = None
+        # calendar_id : event_id
+        self.last_events: dict[str, str] = {cal["id"]: None for cal in calendars}
         self.load_data()
 
     def start_loops(self):
         self.update_calendars.start()
-        self.check_event.start()
+        self.check_events.start()
 
     @tasks.loop(seconds=config.CALENDAR_UPDATE_INTERVAL)
     async def update_calendars(self) -> None:
@@ -57,16 +58,17 @@ class CalendarCog(commands.Cog):
         self.last_statuses = await self._update_calendars()
 
     @tasks.loop(seconds=config.EVENT_CHECK_INTERVAL)
-    async def check_event(self) -> None:
+    async def check_events(self) -> None:
         """
         The loop that checks if a new event is happening
         :return: None
         """
-        event = await self.get_last_event()
-        if event and event.uid != self.last_event:
-            # There is a new event
-            self.logger.info("New event found")
-            await self.send_event(event)
+        for cal_id in self.calendars:
+            event = await self.get_last_event(cal_id)
+            if event and event.uid != self.last_events[cal_id]:
+                # There is a new event
+                self.logger.info(f"New event found for calendar {cal_id}")
+                await self.send_event(cal_id, event)
 
     @commands.command()
     async def update(self, ctx: commands.Context) -> None:
@@ -83,17 +85,21 @@ class CalendarCog(commands.Cog):
             message += "\n"
         await ctx.send(message)
 
-    async def send_event(self, event: Event):
+    async def send_event(self, calendar_id: str, event: Event):
         """
-
-        :param event:
+        Sends the event from the specified calendar to the corresponding channel and mention if enabled
+        :param calendar_id: The id of the calendar the event is part of
+        :param event: The calendar event
         :return:
         """
         # Update the last event
-        self.last_event = event.uid
+        self.last_events[calendar_id] = event.uid
         async with self.data_lock:
-            with open(config.DATA_FILE, "w") as fd:
-                json.dump(self.gen_data(), fd)
+            data_file = tools.get_calendar_data_filename(calendar_id)
+            with open(data_file, "w") as fd:
+                json.dump(self.gen_data(calendar_id), fd)
+
+        cal_data = self.calendars_data[calendar_id]
 
         # Getting the channel to send the event to
         channel: discord.TextChannel = self.bot.get_channel(config.CHANNEL_ID)
@@ -182,26 +188,30 @@ class CalendarCog(commands.Cog):
                 self.logger.debug(f"Couldn't send status DM to {user.display_name}")
         return status
 
-    async def get_last_event(self) -> typing.Union[Event, None]:
+    async def get_last_event(self, calendar_id: str) -> typing.Union[Event, None]:
         """
-
-        :return:
+        Gets the last event of the specified calendar
+        :param calendar_id: The id of the calendar for which to get the last event
+        :return: The current new event for the specified calendar, None if already set or if there is none
         """
         async with self.calendar_lock:
-            events = list(self.calendar.timeline.now())
+            # Get all the events currently happening
+            events = list(self.calendars[calendar_id].timeline.now())
         if not events:
             return
-        if self.last_event in [e.uid for e in events]:
+        # If the last event is already is already correctly set (doesn't handle overlapping of two or more events)
+        if self.last_events[calendar_id] in [e.uid for e in events]:
             return None
         return events[0]
 
-    def gen_data(self) -> dict:
+    def gen_data(self, calendar_id: str) -> dict:
         """
-
+        Generate the dict (and thus JSON) that will store the state of a particular calendar
+        :param calendar_id: The id of the calendar for which to generate the data
         :return:
         """
         return {
-            "last_event": self.last_event
+            "last_event": self.last_events[calendar_id]
         }
 
     def load_data(self) -> None:
