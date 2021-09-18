@@ -10,7 +10,6 @@ from cogs.calendar import CalendarCog
 import discord
 from discord.ext import commands
 import asyncio
-import argparse
 
 bot = commands.Bot(command_prefix="!")
 
@@ -25,21 +24,32 @@ async def on_ready():
     calCog.start_loops()
 
 
+@bot.command(name="list")
+@commands.check(is_admin)
+async def _cmd_list_calendars(ctx: commands.Context):
+    message = "\n".join(calCog.calendars)
+    await ctx.send(message)
+
+
 @bot.command(name="debug")
 @commands.check(is_admin)
-async def _debug(ctx: commands.Context, mode: str = "now"):
-    if mode in ("now", "n"):
-        event = list(calCog.calendar.timeline.now())[0]
-    elif mode in ("today", "t"):
-        event = list(calCog.calendar.timeline.today())[0]
-    else:
-        event = list(calCog.calendar.timeline.today())[0]
+async def _debug(ctx: commands.Context, calendar: str, mode: str = "now"):
+    # Check if the calendar exists
+    if calendar not in calCog.calendars:
+        return await ctx.send(":x: Unknown calendar")
 
-    embed = tools.generate_event_embed(event, (0, len(students)))
+    if mode in ("now", "n"):
+        event = list(calCog.calendars[calendar].timeline.now())[0]
+    elif mode in ("today", "t"):
+        event = list(calCog.calendars[calendar].timeline.today())[0]
+    else:
+        event = list(calCog.calendars[calendar].timeline.today())[0]
+
+    embed = tools.generate_event_embed(event, (0, len(students)), calCog.calendars_data[calendar])
     bot_message: discord.Message = await ctx.send(embed=embed)
     await bot_message.add_reaction(config.REACTION_EMOJI)
 
-    calCog.reacted = set()  # The users who reacted
+    calCog.reacted[calendar] = set()  # The users who reacted
     courses = tools.get_courses()
     logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
 
@@ -47,15 +57,15 @@ async def _debug(ctx: commands.Context, mode: str = "now"):
         return _reaction.message == bot_message and \
                str(_user.id) in students and \
                str(_reaction.emoji) == config.REACTION_EMOJI and \
-               _user not in calCog.reacted
+               _user not in calCog.reacted[calendar]
 
     try:
-        while len(calCog.reacted) != len(students):
+        while len(calCog.reacted[calendar]) != len(students):
             reaction, user = await bot.wait_for('reaction_add', timeout=config.REACTION_TIMEOUT, check=check)
-            bot.loop.create_task(calCog.check_in(user, courses, event, bot_message))
+            bot.loop.create_task(calCog.check_in(user, courses, event, calendar, bot_message))
     except asyncio.TimeoutError:
         logger.info("Cancelled")
-        embed = tools.generate_event_embed(event, (len(calCog.reacted), len(students)), finished=True)
+        embed = tools.generate_event_embed(event, (len(calCog.reacted[calendar]), len(students)), calCog.calendars_data[calendar], finished=True)
         await bot_message.edit(embed=embed)
         await bot_message.add_reaction(config.CANCELLED_EMOJI)
     else:
