@@ -27,7 +27,7 @@ class CalendarCog(commands.Cog):
         :param logger: An optional logger
         """
         self.bot = bot
-        self.reacted = set()
+        self.reacted: dict[str, set] = {cal["id"]: set() for cal in calendars}
         self.calendar_lock = asyncio.Lock()
         self.data_lock = asyncio.Lock()
 
@@ -117,7 +117,7 @@ class CalendarCog(commands.Cog):
 
         await bot_message.add_reaction(config.REACTION_EMOJI)
 
-        self.reacted = set()  # The users who reacted
+        self.reacted[calendar_id] = set()  # The users who reacted
         courses = tools.get_courses()
         self.logger.debug(f"Got {len(courses)} course(s): {', '.join([course['name'] for course in courses])}")
         # Only check-in for the current courses (hopefully there's only one)
@@ -131,7 +131,7 @@ class CalendarCog(commands.Cog):
                    _user not in self.reacted
 
         try:
-            while len(self.reacted) != len(self.students):
+            while len(self.reacted[calendar_id]) != len(self.students):
                 timeout = event.end.shift(minutes=+15) - now(config.TIMEZONE)
                 timeout = timeout.seconds
                 timeout = timeout if timeout > 1 else 1
@@ -166,7 +166,7 @@ class CalendarCog(commands.Cog):
         for course in courses:
             status = tools.check_in(username, course["id"], self.logger)
             if status:
-                self.reacted.add(user)
+                self.reacted[calendar_id].add(user)
             await self.send_check_in_status(status, course, user)
             await asyncio.sleep(1)
         _embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)))
