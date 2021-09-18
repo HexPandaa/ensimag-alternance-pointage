@@ -66,6 +66,7 @@ if __name__ == '__main__':
     args = tools.parse_args()
     logger = tools.get_logger(name="bot", level=args.log_level)
     students = tools.load_students(config.STUDENTS_FILE)
-    calCog = CalendarCog(bot, students, logger=logger)
+    calendars_config = tools.load_calendars_config(config.CALENDARS_CONFIG_FILE)
+    calCog = CalendarCog(bot, students, calendars_config["calendars"], args.enable_check_in, logger=logger)
     bot.add_cog(calCog)
     bot.run(config.BOT_TOKEN)
