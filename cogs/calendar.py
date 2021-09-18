@@ -18,12 +18,13 @@ from typing import List, Dict
 
 
 class CalendarCog(commands.Cog):
-    def __init__(self, bot: commands.Bot, students: dict, calendars: List[Dict], logger: logging.Logger = logging.getLogger("Calendar")):
+    def __init__(self, bot: commands.Bot, students: dict, calendars: List[Dict], check_in: bool = False, logger: logging.Logger = logging.getLogger("Calendar")):
         """
 
         :param bot: The bot
         :param students: The dictionary mapping the students' discord IDs to their identities
         :param calendars: The list of the configuration of all calendars
+        :param check_in: Whether or not to enable check-ins
         :param logger: An optional logger
         """
         self.bot = bot
@@ -38,7 +39,9 @@ class CalendarCog(commands.Cog):
         # Dict of empty calendars for now, mapped by their id in the config file
         self.calendars: dict[str, Calendar] = {cal["id"]: Calendar() for cal in calendars}
 
+        self.enable_check_ins = check_in
         self.logger = logger
+
         self.last_statuses: dict[str, bool] = {cal["id"]: False for cal in calendars}
 
         # calendar_id : event_id
@@ -115,7 +118,8 @@ class CalendarCog(commands.Cog):
         content = role.mention if role else ""
         bot_message: discord.Message = await channel.send(content=content, embed=embed)
 
-        await bot_message.add_reaction(config.REACTION_EMOJI)
+        if self.enable_check_ins:
+            await bot_message.add_reaction(config.REACTION_EMOJI)
 
         self.reacted[calendar_id] = set()  # The users who reacted
         courses = tools.get_courses()
@@ -136,7 +140,8 @@ class CalendarCog(commands.Cog):
                 timeout = timeout.seconds
                 timeout = timeout if timeout > 1 else 1
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout, check=check)
-                self.bot.loop.create_task(self.check_in(user, courses, event, bot_message, content))
+                if self.enable_check_ins:
+                    self.bot.loop.create_task(self.check_in(user, courses, event, calendar_id, bot_message, content))
 
         except asyncio.TimeoutError:
             embed = tools.generate_event_embed(event, (len(self.reacted), len(self.students)), finished=True)
