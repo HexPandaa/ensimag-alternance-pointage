@@ -206,15 +206,18 @@ class CalendarCog(commands.Cog):
 
     def load_data(self) -> None:
         """
-
+        Loads the last events for all calendars from their data files, if they don't exist, set en empty string as the event
         :return:
         """
-        try:
-            with open(config.DATA_FILE) as fd:
-                j: dict = json.load(fd)
-                self.last_event = j.get("last_event", "")
-        except (IOError, json.JSONDecodeError):
-            self.last_event = ""
+        for cal in self.calendars_data:
+            cal_id = cal["id"]
+            cal_data_file = tools.get_calendar_data_filename(cal_id)
+            try:
+                with open(cal_data_file) as fd:
+                    j: dict = json.load(fd)
+                    self.last_events[cal_id] = j.get("last_event", "")
+            except (IOError, json.JSONDecodeError):
+                self.last_events[cal_id] = ""
 
     async def _load_calendars(self) -> None:
         """
