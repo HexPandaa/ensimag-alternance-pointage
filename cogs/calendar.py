@@ -33,7 +33,10 @@ class CalendarCog(commands.Cog):
 
         self.students = students
 
-        self.calendar = Calendar()
+        self.calendars_data = calendars
+        # self.calendars_data = {cal["id"]: cal for cal in calendars}
+        # Dict of empty calendars for now, mapped by their id in the config file
+        self.calendars: dict[str, Calendar] = {cal["id"]: Calendar() for cal in calendars}
 
         self.logger = logger
         self.last_statuses: dict[str, bool] = {cal["id"]: False for cal in calendars}
@@ -213,17 +216,20 @@ class CalendarCog(commands.Cog):
         except (IOError, json.JSONDecodeError):
             self.last_event = ""
 
-    async def _load_calendar(self) -> None:
+    async def _load_calendars(self) -> None:
         """
-
+        Loads all the calendars from their files, if they are not available, load an empty calendar
         :return:
         """
-        try:
-            with self.calendar_lock:
-                with open(config.CALENDAR_FILE, "r", encoding="utf-8") as fd:
-                    self.calendar = Calendar(fd.read())
-        except IOError:
-            self.calendar = Calendar()
+        for cal in self.calendars_data:
+            cal_id = cal["id"]
+            cal_file = tools.get_calendar_filename(cal_id)
+            try:
+                with self.calendar_lock:
+                    with open(cal_file, "r", encoding="utf-8") as fd:
+                        self.calendars[cal_id] = Calendar(fd.read())
+            except IOError:
+                self.calendars[cal_id] = Calendar()
 
     async def _update_calendars(self) -> dict[str, bool]:
         """
