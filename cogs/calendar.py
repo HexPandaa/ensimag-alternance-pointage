@@ -13,6 +13,8 @@ import json
 import typing
 import logging
 from arrow import now
+from os.path import isdir
+from os import makedirs
 
 from typing import List, Dict
 
@@ -46,11 +48,18 @@ class CalendarCog(commands.Cog):
 
         # calendar_id : event_id
         self.last_events: dict[str, str] = {cal["id"]: None for cal in calendars}
+
+        self.verify_calendars_folder()
         self.load_data()
 
     def start_loops(self):
         self.update_calendars.start()
         self.check_events.start()
+
+    @staticmethod
+    def verify_calendars_folder() -> None:
+        if not isdir(config.CALENDARS_FOLDER):
+            makedirs(config.CALENDARS_FOLDER)
 
     @tasks.loop(seconds=config.CALENDAR_UPDATE_INTERVAL)
     async def update_calendars(self) -> None:
