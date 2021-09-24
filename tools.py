@@ -75,7 +75,7 @@ def generate_event_embed(event: Event,
     location = event.location if event.location else "Unknown location"
     embed = discord.Embed(title=name,
                           description=description,
-                          color=calendar_data["embed"]["color"])
+                          color=int(calendar_data["embed"]["color"], 16))
     embed.set_thumbnail(url=calendar_data["embed"]["thumbnail"])
     embed.add_field(name="Heure", value=f"De {event.begin.to(config.TIMEZONE).strftime('%Hh%M')}"
                                         f" à {event.end.to(config.TIMEZONE).strftime('%Hh%M')}", inline=True)
